@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import Colors from '@/data/Colors';
 import { UserDetailContext } from '@/context/UserDetailContext';
@@ -8,11 +8,13 @@ import { LucideDownload, Rocket } from 'lucide-react';
 import { useSidebar } from '../ui/sidebar';
 import { useCountUp } from "use-count-up";
 import { ActionContext } from '@/context/ActionContext';
+import SignInDialog from './SignInDialog';
 
 function Header() {
   const router = useRouter();
   const { userDetail, setUserDetail } = useContext(UserDetailContext);
   const { action, setAction } = useContext(ActionContext);
+  const [openDialog,setOpenDialog]=useState(false);
 
   const path = usePathname();
   const start = 0;
@@ -60,7 +62,7 @@ function Header() {
       {/* Authentication Buttons */}
       {!userDetail?.name ? (
         <div className="flex gap-5 bg-transparent">
-          <Button variant="ghost">Sign In</Button>
+          <Button variant="ghost" onClick={() => setOpenDialog(true)} >Sign In</Button>
           <Button
             className="text-white"
             style={{ backgroundColor: Colors.BLUE }}
@@ -108,6 +110,7 @@ function Header() {
           )}
         </div>
       ) : null}
+      <SignInDialog openDialog={openDialog} closeDialog={(v) => setOpenDialog(v)} />
     </div>
   );
 }

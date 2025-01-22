@@ -18,13 +18,13 @@ function Hero() {
   const [userInput,setUserInput]=useState();
   const {userDetail,setUserDetail}=useContext(UserDetailContext);
   const {messages,setMessages}=useContext(MessagesContext);
-  const [openDialog,SetOpenDialog]=useState(false);
+  const [openDialog,setOpenDialog]=useState(false);
   const CreateWorkspace=useMutation(api.workspace.CreateWorkspace)
   const router=useRouter();
   const onGenerate=async(input)=>{
     if(!userDetail?.name)
     {
-      SetOpenDialog(true);
+      setOpenDialog(true);
       return;
     }
 
