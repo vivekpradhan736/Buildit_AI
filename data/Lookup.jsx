@@ -5,7 +5,7 @@ export default {
   HERO_HEADING: 'What’s your dream product to build?',
   HERO_DESC: 'Build, test, and deploy full-stack web applications & powerful editor',
   INPUT_PLACEHOLDER: 'What app would make your daily life easier?',
-  SIGNIN_HEADING: 'Continue With Buildit AI 2.0',
+  SIGNIN_HEADING: 'Continue With Buildit AI',
   SIGNIN_SUBHEADING: 'To use Buildit you must log into an existing account or create one.',
   SIGNIn_AGREEMENT_TEXT: 'By using Buildit, you agree to the collection of usage data for analytics.',
 
