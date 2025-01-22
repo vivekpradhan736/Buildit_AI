@@ -2,12 +2,12 @@ import { HelpCircle, LogOut, PanelLeftClose, Settings, Wallet } from 'lucide-rea
 import React, { useContext, useState } from 'react';
 import { Button } from '../ui/button';
 import { useRouter } from 'next/navigation';
-import Modal from '../ui/modal'; // Import a reusable modal component
 import { UserDetailContext } from '@/context/UserDetailContext';
 import Colors from '@/data/Colors';
 import { useSidebar } from '../ui/sidebar';
 import Image from 'next/image';
 import { Separator } from '../ui/separator';
+import Modal from '../ui/Modal';
 
 function SideBarFooter() {
   const router = useRouter();
