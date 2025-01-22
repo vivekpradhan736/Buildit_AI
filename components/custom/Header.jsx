@@ -64,6 +64,7 @@ function Header() {
         <div className="flex gap-5 bg-transparent">
           <Button variant="ghost" onClick={() => setOpenDialog(true)} >Sign In</Button>
           <Button
+          onClick={() => setOpenDialog(true)}
             className="text-white"
             style={{ backgroundColor: Colors.BLUE }}
           >
