@@ -35,7 +35,6 @@ function PricingModel() {
         userId: userDetail._id, // Pass the user ID to identify the correct user
       });
 
-      console.log('Tokens successfully updated on the server:', updatedUser.token);
 
       // Update tokens locally
       setUserDetail((prev) => ({
@@ -43,7 +42,6 @@ function PricingModel() {
         token: newTokenCount, // Update local user token
       }));
 
-      console.log('Local token updated:', newTokenCount);
     } catch (error) {
       console.error('Error updating tokens:', error);
     } finally {
@@ -70,7 +68,6 @@ function PricingModel() {
           <PayPalButtons
             style={{ layout: 'horizontal' }}
             onApprove={async () => {
-              console.log('Payment approved');
               await onPaymentSuccess();
             }}
             onCancel={() => console.log('Payment canceled')}

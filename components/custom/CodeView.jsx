@@ -56,7 +56,7 @@ function CodeView() {
  useEffect(() => {
      if (Array.isArray(messages) && messages.length > 0) {
        const role = messages[messages.length - 1].role;
-       if (role === 'user') {
+       if (role === 'ai') {
          GenerateAiCode();
        }
      }
@@ -68,7 +68,6 @@ function CodeView() {
     const result=await axios.post('/api/gen-ai-code',{
       prompt:PROMPT
     });
-    console.log(result.data);
     const aiResp=result.data;
 
     const mergedFiles={...Lookup.DEFAULT_FILE,...aiResp?.files}

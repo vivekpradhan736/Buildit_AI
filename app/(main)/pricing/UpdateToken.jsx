@@ -22,7 +22,6 @@ export const UpdateToken = mutation({
         token: token, // Set the new token value
       });
 
-      console.log("Token updated successfully for user:", userId);
       return { success: true, message: "Token updated successfully", userId };
 
     } catch (error) {

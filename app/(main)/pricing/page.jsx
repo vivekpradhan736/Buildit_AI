@@ -20,7 +20,6 @@ function Pricing() {
     }));
 
     setIsUpdating(false);
-    console.log('Tokens successfully updated locally:', newTokenCount);
   };
 
   return (

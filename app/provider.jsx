@@ -15,6 +15,7 @@ import { ActionContext } from "@/context/ActionContext";
 
 function Provider({ children }) {
   const [messages, setMessages] = useState([]); // Initialize as an empty array
+  const [imageFile, setImageFile] = useState([]);
   const [userDetail, setUserDetail] = useState(null); // Initialize as null
   const [action, setAction] = useState();
   const convex = useConvex();
@@ -29,7 +30,6 @@ function Provider({ children }) {
             email: user.email,
           });
           setUserDetail(result);
-          console.log("User fetched successfully:", result);
         } catch (error) {
           console.error("Error fetching user details:", error);
         }
@@ -50,7 +50,7 @@ function Provider({ children }) {
           options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
         >
           <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-            <MessagesContext.Provider value={{ messages, setMessages }}>
+            <MessagesContext.Provider value={{ messages, setMessages, imageFile, setImageFile }}>
               <ActionContext.Provider value={{action,setAction}}>
               <NextThemesProvider
                 attribute="class"

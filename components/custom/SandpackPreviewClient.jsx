@@ -3,9 +3,6 @@ import { SandpackPreview, useSandpack } from '@codesandbox/sandpack-react'
 import React, { useContext, useEffect, useRef } from 'react'
 
 const SandpackPreviewClient = ({customActions, height, width}) => {
-    console.log("customActions",customActions)
-    console.log("height",height)
-    console.log("width",width)
     const { sandpack } = useSandpack();
     const previewRef = useRef();
     const {action, setAction} = useContext(ActionContext);
@@ -13,7 +10,6 @@ const SandpackPreviewClient = ({customActions, height, width}) => {
     const GetSandpackClient = async () => {
         const client = previewRef.current?.getClient();
         if (client) {
-            console.log("client",client);
             const result = await client.getCodeSandboxURL();
             if(action?.actionType == 'deploy'){
                 window.open('https://'+result?.sandboxId+'.csb.app/');
