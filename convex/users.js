@@ -26,10 +26,8 @@ export const CreateUser = mutation({
           uid: args.uid,
           token: 600000, // Default token value for new users
         });
-        console.log("User created:", result);
         return result; // Return the created user for confirmation
       } else {
-        console.log("User already exists:", existingUser);
         return existingUser; // Return the existing user if already exists
       }
     } catch (error) {
@@ -69,7 +67,6 @@ export const UpdateToken = mutation({
       const result = await ctx.db.patch(args.userId, {
         token: args.token,
       });
-      console.log("Token updated:", result);
       return result; // Return updated result
     } catch (error) {
       console.error("Error updating token:", error);

@@ -3,25 +3,26 @@ import { mutation, query } from "./_generated/server";
 
 // Mutation to Create a Workspace
 export const CreateWorkspace = mutation({
-    args: {
-      messages: v.any(),
-      user: v.id("users"),
-    },
-    handler: async (ctx, args) => {
-      try {
-        const result = await ctx.db.insert("workspace", {
-          messages: args.messages,
-          user: args.user,
-        });
-        console.log("result",result)
-        // Assuming the insert returns the full workspace object
-        return result; // Returning the workspace ID
-      } catch (error) {
-        console.error("Error creating workspace:", error);
-        throw new Error("Unable to create workspace");
-      }
-    },
-  });
+  args: {
+    messages: v.any(),
+    user: v.id("users"),
+    // image: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const result = await ctx.db.insert("workspace", {
+        messages: args.messages,
+        user: args.user,
+        // image: args.image || null,
+      });
+      // Returning the inserted workspace object
+      return result;
+    } catch (error) {
+      console.error("Error creating workspace:", error);
+      throw new Error("Unable to create workspace");
+    }
+  },
+});
   
 
 // Query to Get a Workspace by ID
@@ -123,8 +124,6 @@ export const SearchWorkspaces = query({
     searchTerm: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log("userId",args.userId)
-    console.log("searchTerm",args.searchTerm)
     try {
       // Use a simple case-insensitive search in workspace's messages field
       const result = await ctx.db
