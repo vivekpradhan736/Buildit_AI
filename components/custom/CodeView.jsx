@@ -20,6 +20,7 @@ import { UserDetailContext } from '@/context/UserDetailContext';
 import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog';
 import SandpackPreviewClient from './SandpackPreviewClient';
 import { ActionContext } from '@/context/ActionContext';
+import { Skeleton } from "@/components/ui/skeleton"
 
 function CodeView() {
   const {id}=useParams();
@@ -56,7 +57,7 @@ function CodeView() {
  useEffect(() => {
      if (Array.isArray(messages) && messages.length > 0) {
        const role = messages[messages.length - 1].role;
-       if (role === 'user') {
+       if (role === 'ai') {
          GenerateAiCode();
        }
      }
@@ -64,11 +65,11 @@ function CodeView() {
   
   const GenerateAiCode=async()=>{
     setLoading(true)
+    setActiveTab('code')
     const PROMPT=JSON.stringify(messages)+" "+Prompt.CODE_GEN_PROMPT;
     const result=await axios.post('/api/gen-ai-code',{
       prompt:PROMPT
     });
-    console.log(result.data);
     const aiResp=result.data;
 
     const mergedFiles={...Lookup.DEFAULT_FILE,...aiResp?.files}
@@ -91,8 +92,8 @@ function CodeView() {
         }))
 
 
-    setActiveTab('code')
-    setLoading(false);
+        setLoading(false);
+        setActiveTab('preview')
    }
 
    const customActions = (
@@ -136,6 +137,72 @@ function CodeView() {
           externalResources: ['https://cdn.tailwindcss.com'],
         }}
       >
+      {loading === true ? (
+        <div className=" bg-gray-900 opacity-80 rounded-lg h-screen flex justify-center">
+          {/* <Loader2Icon className="animate-spin h-10 w-10 text-white" />
+          <h2 className="text-white">Generating your files...</h2> */}
+          {/* Left Sidebar - File Explorer */}
+      <div className="w-40 border-r border-border bg-muted/10 p-4 space-y-4">
+        {/* Folder Structure */}
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-16" /> {/* public */}
+          <div className="pl-4 space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+        </div>
+
+        {/* File List */}
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16" /> {/* App.css */}
+          <Skeleton className="h-3 w-14" /> {/* App.js */}
+          <Skeleton className="h-3 w-16" /> {/* index.js */}
+          <Skeleton className="h-3 w-24" /> {/* package.json */}
+          <Skeleton className="h-3 w-32" /> {/* postcss.config.js */}
+          <Skeleton className="h-3 w-20" /> {/* styles.css */}
+          <Skeleton className="h-3 w-28" /> {/* tailwind.config.js */}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 p-4 space-y-6 overflow-hidden">
+        {/* Tab Bar */}
+        <div className="flex gap-2 border-b border-border pb-2">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+
+        {/* Code Editor Content */}
+        <div className="space-y-2">
+          {/* Import statements */}
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+
+          {/* Function declaration */}
+          <Skeleton className="h-4 w-32 mt-4" />
+
+          {/* Function content */}
+          <div className="pl-4 space-y-1 mt-2">
+            <Skeleton className="h-4 w-80" />
+            <Skeleton className="h-4 w-96" />
+            <Skeleton className="h-4 w-72" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+
+          {/* More code blocks */}
+          <div className="space-y-1 mt-4">
+            <Skeleton className="h-4 w-full max-w-2xl" />
+            <Skeleton className="h-4 w-full max-w-xl" />
+            <Skeleton className="h-4 w-full max-w-lg" />
+          </div>
+        </div>
+      </div>
+        </div>
+      ) : (
         <SandpackLayout>
           {activeTab == 'code' ? (
             <>
@@ -143,21 +210,11 @@ function CodeView() {
               <SandpackCodeEditor style={{ height: '80vh' }} />
             </>
           ) : (
-            // <SandpackPreview
-            //   style={{ height: '80vh' }}
-            //   actionsChildren={customActions}
-            //   showNavigator={true}
-            // />
             <SandpackPreviewClient customActions={customActions} height='80vh' width='80vw' />
           )}
         </SandpackLayout>
-      </SandpackProvider>
-      {loading && (
-        <div className="p-10 bg-gray-900 opacity-80 absolute top-0 rounded-lg w-full h-full flex items-center justify-center">
-          <Loader2Icon className="animate-spin h-10 w-10 text-white" />
-          <h2 className="text-white">Generating your files...</h2>
-        </div>
       )}
+      </SandpackProvider>
 
       {/* Dialog for full-screen preview */}
       {isFullScreen && (
@@ -176,11 +233,6 @@ function CodeView() {
         }}
         >
         <SandpackLayout>
-          {/* <SandpackPreview
-            style={{ height: '100vh', width: '100vw' }}
-            actionsChildren={customActions}
-            showNavigator={true}
-          /> */}
           <SandpackPreviewClient customActions={customActions} height='100vh' width='100vw' />
         </SandpackLayout>
         </SandpackProvider>

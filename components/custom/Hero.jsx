@@ -3,7 +3,7 @@ import { MessagesContext } from '@/context/MessagesContext';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import Colors from '@/data/Colors';
 import Lookup from '@/data/Lookup'
-import { ArrowRight, Link, PanelLeftOpen, PlusCircle } from 'lucide-react'
+import { ArrowRight, Link, Loader2Icon, PanelLeftOpen, PlusCircle, X } from 'lucide-react'
 import React, { useContext, useEffect, useState } from 'react'
 import SignInDialog from './SignInDialog';
 import { useMutation } from 'convex/react';
@@ -11,16 +11,71 @@ import { api } from '@/convex/_generated/api';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 import Image from 'next/image';
+import { Separator } from '../ui/separator';
+import axios from 'axios';
 
 function Hero() {
   const {toggleSidebar}=useSidebar();
   const {open}=useSidebar()
   const [userInput,setUserInput]=useState();
+  const [userImageInput,setUserImageInput]=useState(null);
   const {userDetail,setUserDetail}=useContext(UserDetailContext);
-  const {messages,setMessages}=useContext(MessagesContext);
+  const {messages,setMessages,imageFile,setImageFile}=useContext(MessagesContext);
+  const [imageUploadLoading,setImageUploadLoading]=useState(false);
   const [openDialog,setOpenDialog]=useState(false);
   const CreateWorkspace=useMutation(api.workspace.CreateWorkspace)
   const router=useRouter();
+  const [imageURL, setImageURL] = useState('');
+
+  async function uploadImageToCloudinary(imageFile) {
+    const CLOUDINARY_NAME = "dfzbbx31u";
+    const CLOUDINARY_API_KEY = "736842653849378";
+    const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/upload`;
+  
+    // Create a form data object
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", "Buildit_AI"); // Replace with your upload preset
+    formData.append("api_key", CLOUDINARY_API_KEY);
+  
+    try {
+      // Make the POST request to Cloudinary
+      const response = await axios.post(UPLOAD_URL, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      // Return the uploaded image URL
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Error uploading image to Cloudinary:", error);
+      throw error;
+    }
+  }
+
+  const handleImageChange = async (e) => {
+    try {
+      setImageUploadLoading(true);
+      setUserImageInput(e.target.files[0]);
+      let Url;
+      
+      if (e.target.files[0]) { // Ensure a file is selected
+        Url = await uploadImageToCloudinary(e.target.files[0]);
+        setImageURL(Url);
+        console.log("Image uploaded successfully:", Url);
+        setImageUploadLoading(false);
+      } else {
+        console.warn("No file selected for upload.");
+        setImageUploadLoading(false);
+      }
+    } catch (error) {
+      setImageUploadLoading(false);
+      console.error("Error uploading image:", error);
+      alert("An error occurred while uploading the image. Please try again.");
+    }
+  };
+
   const onGenerate=async(input)=>{
     if(!userDetail?.name)
     {
@@ -36,9 +91,15 @@ function Hero() {
 
     const msg={
       role:'user',
-    content:input
+    content:input,
+    image: imageURL || null,
     }
    setMessages(msg);
+
+   if(userImageInput)
+   {
+    setImageFile(userImageInput);
+   }
 
    const workspaceId = await CreateWorkspace({
     user:userDetail._id,
@@ -108,6 +169,32 @@ function Hero() {
             borderColor: "rgba(0, 255, 255, 0.4)",
           }}
         >
+          {/* Image Preview */}
+  {userImageInput && (
+    <>
+              <div className="relative inline-block">
+                <div className="relative h-16 w-16 rounded">
+                  <img
+                    src={URL.createObjectURL(userImageInput) || "/placeholder.svg"}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
+                  {imageUploadLoading === true ? (
+                    <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"><Loader2Icon className="animate-spin h-3 w-3" /></div>
+                  ) : (
+                    <button
+                    onClick={() => setUserImageInput(null)}
+                    className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  )}
+                </div>
+              </div>
+              <Separator className="bg-[#0a7a80] mb-3" />
+              </>
+            )}
           <div className="flex gap-2">
             <textarea
               placeholder={Lookup.INPUT_PLACEHOLDER}
@@ -125,7 +212,15 @@ function Hero() {
             )}
           </div>
           <div className="mt-2">
-            <Link className="w-4 h-4 sm:w-5 sm:h-5" />
+          <label className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleImageChange}
+      className="hidden" // Hide the file input, style the label instead
+    />
+    <span><Link className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"/></span> {/* Add an icon or text here for better UI */}
+  </label>
           </div>
         </div>
 
