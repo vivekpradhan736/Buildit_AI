@@ -126,10 +126,10 @@ function ChatView() {
       }
 
       const result = await axios.post('/api/ai-chat', formData
-        // , {
-        // headers: {
-        //   'Content-Type': 'multipart/form-data', // Set headers for file upload
-        // }}
+        , {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Set headers for file upload
+        }}
       );
       setLoading(false);
       setImageFile([]);
