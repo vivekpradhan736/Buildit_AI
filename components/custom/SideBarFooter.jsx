@@ -36,7 +36,7 @@ function SideBarFooter() {
       name: 'Sign Out',
       icon: LogOut,
       action: () => {
-        localStorage.removeItem('userDetail'); // Clear user data
+        localStorage.removeItem('user'); // Clear user data
         router.push('/'); // Redirect to the first page
       },
     },
