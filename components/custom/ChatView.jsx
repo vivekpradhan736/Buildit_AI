@@ -125,11 +125,12 @@ function ChatView() {
         formData.append('imageFile', imageFile); // Attach the image file
       }
 
-      const result = await axios.post('/api/ai-chat', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', // Set headers for file upload
-        },
-      });
+      const result = await axios.post('/api/ai-chat', formData
+        // , {
+        // headers: {
+        //   'Content-Type': 'multipart/form-data', // Set headers for file upload
+        // }}
+      );
       setLoading(false);
       setImageFile([]);
       const aiResp = { role: 'ai', content: result.data.result };
