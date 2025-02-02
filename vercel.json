@@ -1,14 +1,14 @@
 {
     "version": 2,
     "functions": {
-      "api/gen-ai-code.js": {
+      "app/api/gen-ai-code/route.jsx": {
         "maxDuration": 60
       }
     },
     "routes": [
       {
-        "src": "/api/(.*)",
-        "dest": "/api/$1"
+        "src": "/api/gen-ai-code",
+        "dest": "/app/api/gen-ai-code/route.jsx"
       }
     ]
   }
