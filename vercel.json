@@ -13,7 +13,7 @@
     ],
     "crons": [
     {
-      "path": "app/api/resetPerDayToken/route.jsx",
+      "path": "app/api/resetPerDayToken",
       "schedule": "0 0 * * *"
     }
   ]
