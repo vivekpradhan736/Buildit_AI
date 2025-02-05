@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useConvex, useMutation } from 'convex/react';
 import { ArrowRight, Link, Loader2Icon, PanelLeftOpen, X } from 'lucide-react';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { SidebarProvider, useSidebar } from '../ui/sidebar';
@@ -22,6 +22,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from "framer-motion"
+import { NumericFormat } from "react-number-format";
 
 export const countToken = (inputText) =>{
   return inputText.trim().split(/\s+/).filter(word=> word).length;
@@ -30,6 +32,7 @@ export const countToken = (inputText) =>{
 function ChatView() {
   const { id } = useParams();
   const convex = useConvex();
+  const router = useRouter();
   const { userDetail,setUserDetail} = useContext(UserDetailContext);
   const { messages,setMessages,imageFile,setImageFile } = useContext(MessagesContext);
   const [userInput, setUserInput] = useState('');
@@ -41,6 +44,7 @@ function ChatView() {
   const {open}=useSidebar()
   const [userImageInput,setUserImageInput]=useState(null);
   const UpdateTokens=useMutation(api.users.UpdateToken);
+  const [isShowTokens, setIsShowTokens] = useState(false);
 
   async function uploadImageToCloudinary(imageFile) {
     const CLOUDINARY_NAME = "dfzbbx31u";
@@ -96,6 +100,13 @@ function ChatView() {
     id&& GetWorkspaceData();
   }, [id]);
 
+  useEffect(()=>{
+      const ShowTokens = localStorage.getItem("ShowTokens")
+      if(ShowTokens){
+        setIsShowTokens(JSON.parse(ShowTokens))
+      }
+     },[localStorage.getItem("ShowTokens")])
+
   const GetWorkspaceData = async () => {
     const result = await convex.query(api.workspace.GetWorkspace, {
         workspaceId:id
@@ -142,14 +153,17 @@ function ChatView() {
       });
 
       const token=Number(userDetail?.token)-Number (countToken(JSON.stringify(aiResp)));
+      const newPerDayToken=Number(userDetail?.perDayToken)-Number (countToken(JSON.stringify(aiResp)));
       //update tokens
       setUserDetail(prev=>({
         ...prev,
-        token:token
+        token:token,
+        perDayToken: newPerDayToken
       }))
       await UpdateTokens({
         userId:userDetail?._id,
-        token:token
+        token:token,
+        perDayToken:newPerDayToken
       })
     } catch (error) {
       console.error('Error fetching AI response:', error);
@@ -258,6 +272,36 @@ function ChatView() {
      />
     )}
      </div> }
+     <div className="w-full max-w-2xl">
+      <div className="relative rounded-lg border border-gray-800 bg-[#1a1a1a] text-gray-200 overflow-hidden">
+      <AnimatePresence>
+          {isShowTokens && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className=""
+            >
+              <div className="px-4 py-1 flex gap-2 items-center justify-between text-xs text-nowrap">
+                <span className="text-gray-300">
+                <NumericFormat
+          value={userDetail?.perDayToken}
+          thousandsGroupStyle="lakh"
+          thousandSeparator=","
+          displayType="text"
+          className='text-xs'
+          renderText={(value) => <b>{value} </b>}
+        /> daily tokens remaining.</span>
+                <a className="text-blue-400 transition-colors hover:underline cursor-pointer" onClick={() => {
+                  router.push('/pricing');
+                }}>
+                  Upgrade Plan
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       <div
         className="p-5 border rounded-xl max-w-xl w-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-900/50 via-transparent to-transparent"
         style={{
@@ -318,6 +362,8 @@ function ChatView() {
             <span><Link className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"/></span> {/* Add an icon or text here for better UI */}
           </label>
                   </div>
+      </div>
+      </div>
       </div>
       </div>
     </div>

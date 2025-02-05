@@ -5,20 +5,19 @@ import Colors from '@/data/Colors';
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { LucideDownload, Rocket } from 'lucide-react';
-import { useSidebar } from '../ui/sidebar';
 import { useCountUp } from "use-count-up";
 import { ActionContext } from '@/context/ActionContext';
 import SignInDialog from './SignInDialog';
 
 function Header() {
   const router = useRouter();
-  const { userDetail, setUserDetail } = useContext(UserDetailContext);
+  const { userDetail, setUserDetail, userDetailLoading } = useContext(UserDetailContext);
   const { action, setAction } = useContext(ActionContext);
   const [openDialog,setOpenDialog]=useState(false);
 
   const path = usePathname();
   const start = 0;
-  const end = userDetail?.token;
+  const end = userDetail?.perDayToken;
   const duration = 1;
   const easing = "linear";
   const decimalPlaces = 0;
@@ -34,7 +33,7 @@ function Header() {
 
   useEffect(() => {
     reset();
-  }, [userDetail?.token])
+  }, [userDetail?.perDayToken])
   
 
   const onActionBtn = (action) => {
@@ -61,16 +60,20 @@ function Header() {
 
       {/* Authentication Buttons */}
       {!userDetail?.name ? (
-        <div className="flex gap-5 bg-transparent">
-          <Button variant="ghost" onClick={() => setOpenDialog(true)} >Sign In</Button>
-          <Button
-          onClick={() => setOpenDialog(true)}
-            className="text-white"
-            style={{ backgroundColor: Colors.BLUE }}
-          >
-            Get Started
-          </Button>
-        </div>
+        userDetailLoading ? (
+          <h1> </h1>
+        ) : (
+          <div className="flex gap-5 bg-transparent">
+            <Button variant="ghost" onClick={() => setOpenDialog(true)}>Sign In</Button>
+            <Button
+              onClick={() => setOpenDialog(true)}
+              className="text-white"
+              style={{ backgroundColor: Colors.BLUE }}
+            >
+              Get Started
+            </Button>
+          </div>
+        )
       ) : path?.includes('workspace') ? (
         <div className="flex items-center gap-2">
           <Button className="hover:bg-[#5858584e]" variant="ghost" onClick={() => onActionBtn('export')}>

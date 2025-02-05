@@ -10,6 +10,12 @@
         "src": "/api/gen-ai-code",
         "dest": "/app/api/gen-ai-code/route.jsx"
       }
-    ]
+    ],
+    "crons": [
+    {
+      "path": "app/api/resetPerDayToken/route.jsx",
+      "schedule": "0 0 * * *"
+    }
+  ]
   }
   

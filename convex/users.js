@@ -24,7 +24,9 @@ export const CreateUser = mutation({
           picture: args.picture,
           email: args.email,
           uid: args.uid,
-          token: 600000, // Default token value for new users
+          token: 1000000,
+          perDayToken: 150000, // Set per day token
+          lastResetTokenDate: new Date().toISOString().split("T")[0],
         });
         return result; // Return the created user for confirmation
       } else {
@@ -60,17 +62,84 @@ export const GetUser = query({
 export const UpdateToken = mutation({
   args: {
     token: v.number(),
+    perDayToken: v.optional(v.number()), // Added perDayToken as an optional argument
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
     try {
-      const result = await ctx.db.patch(args.userId, {
+      // Create an update object based on the provided arguments
+      const updateFields = {
         token: args.token,
-      });
-      return result; // Return updated result
+      };
+
+      // Only update perDayToken if it is provided
+      if (args.perDayToken !== undefined) {
+        updateFields.perDayToken = args.perDayToken;
+      }
+
+      const result = await ctx.db.patch(args.userId, updateFields);
+      return result; // Return the updated result
     } catch (error) {
       console.error("Error updating token:", error);
-      throw new Error("Unable to update token: " + error.message); // Provide better error context
+      throw new Error("Unable to update token: " + error.message);
+    }
+  },
+});
+
+
+export const ResetPerDayToken = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const user = await ctx.db.get(args.userId);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      // Get the current date in YYYY-MM-DD format
+      const today = new Date().toISOString().split("T")[0];
+
+      // Check if the last reset was today
+      if (user.lastResetTokenDate === today) {
+        return { message: "Per Day Token already reset today" };
+      }
+
+      // Reset perDayToken and update lastResetTokenDate
+      await ctx.db.patch(args.userId, {
+        perDayToken: 150000,
+        lastResetTokenDate: today,
+      });
+
+      return { message: "Per Day Token reset successfully" };
+    } catch (error) {
+      console.error("Error resetting per day token:", error);
+      throw new Error("Unable to reset per day token: " + error.message);
+    }
+  },
+});
+
+export const CheckAndResetPerDayToken = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Get the current date
+    const today = new Date().toISOString().split("T")[0];
+
+    // If it's a new day, reset the perDayToken
+    if (user.lastResetTokenDate !== today) {
+      await ctx.db.patch(args.userId, {
+        perDayToken: 150000,
+        lastResetTokenDate: today,
+      });
     }
   },
 });

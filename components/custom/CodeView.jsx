@@ -35,10 +35,19 @@ function CodeView() {
   const UpdateTokens=useMutation(api.users.UpdateToken);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const { action, setAction } = useContext(ActionContext);
+  const [isLineWrapping, setIsLineWrapping] = useState(false);
 
   useEffect(()=>{
    id&&GetFiles();
   },[id])
+
+
+  useEffect(()=>{
+    const LineWrapping = localStorage.getItem("LineWrapping")
+    if(LineWrapping){
+      setIsLineWrapping(JSON.parse(LineWrapping))
+    }
+   },[localStorage.getItem("LineWrapping")])
 
   useEffect(()=>{
     setActiveTab('preview')
@@ -80,15 +89,18 @@ function CodeView() {
     });
 
       const token=Number(userDetail?.token)-Number(countToken(JSON.stringify(aiResp)));
+      const newPerDayToken=Number(userDetail?.perDayToken)-Number (countToken(JSON.stringify(aiResp)));
          //update tokens
          await UpdateTokens({
            userId:userDetail?._id,
-           token:token
+           token:token,
+           perDayToken:newPerDayToken
          })
 
          setUserDetail(prev=>({
           ...prev,
-          token:token
+          token:token,
+          perDayToken:newPerDayToken
         }))
 
 
@@ -207,7 +219,7 @@ function CodeView() {
           {activeTab == 'code' ? (
             <>
               <SandpackFileExplorer style={{ height: '80vh' }} />
-              <SandpackCodeEditor style={{ height: '80vh' }} />
+              <SandpackCodeEditor style={{ height: '80vh' }} wrapContent={isLineWrapping} />
             </>
           ) : (
             <SandpackPreviewClient customActions={customActions} height='80vh' width='80vw' />

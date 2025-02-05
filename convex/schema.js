@@ -8,6 +8,8 @@ export default defineSchema({
     picture: v.string(),
     uid: v.string(),
     token: v.optional(v.number()),
+    perDayToken: v.optional(v.number()),
+    lastResetTokenDate: v.optional(v.string()),
   }),
   workspace: defineTable({
     messages: v.any(),

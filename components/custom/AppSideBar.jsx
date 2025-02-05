@@ -17,7 +17,6 @@ import { Separator } from "../ui/separator";
 
 function AppSideBar() {
   const router = useRouter(); // Initialize the router
-  const { toggleSidebar } = useSidebar();
 
   const handleStartNewChat = () => {
     router.push("/"); // Redirect to the first page (home or main)
@@ -43,12 +42,12 @@ function AppSideBar() {
           Start New Chat
         </Button>
       </SidebarHeader>
-      <SidebarContent className="p-1 bg-[#171717]">
+      <SidebarContent className=" p-1 bg-[#171717]">
         <SidebarGroup>
           <WorkspaceHistory />
         </SidebarGroup>
       </SidebarContent>
-      <Separator className="" />
+      <Separator/>
       <SidebarFooter>
         <SideBarFooter />
       </SidebarFooter>

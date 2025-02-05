@@ -1,4 +1,4 @@
-import { HelpCircle, LogOut, PanelLeftClose, Settings, Wallet } from 'lucide-react';
+import { HelpCircle, LogOut, PanelLeftClose, Settings, Wallet, X } from 'lucide-react';
 import React, { useContext, useState } from 'react';
 import { Button } from '../ui/button';
 import { useRouter } from 'next/navigation';
@@ -8,19 +8,27 @@ import { useSidebar } from '../ui/sidebar';
 import Image from 'next/image';
 import { Separator } from '../ui/separator';
 import Modal from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Setting from './Setting';
 
 function SideBarFooter() {
   const router = useRouter();
   const { userDetail } = useContext(UserDetailContext);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const { toggleSidebar } = useSidebar();
+  const [open, setOpen] = React.useState(false)
+  const [activeSection, setActiveSection] = React.useState("Chat")
+  const [showTokenUsage, setShowTokenUsage] = React.useState(false)
 
   const options = [
     {
       name: 'Settings',
       icon: Settings,
       action: () => {
-        setIsSettingsModalOpen(true); // Open the settings modal
+        setOpen(true); // Open the settings modal
+        toggleSidebar();
       },
     },
     {
@@ -38,6 +46,9 @@ function SideBarFooter() {
       action: () => {
         localStorage.removeItem('user'); // Clear user data
         router.push('/'); // Redirect to the first page
+        setTimeout(() => {
+          window.location.reload(); // Refresh the page after logout
+        }, 500);
       },
     },
   ];
@@ -59,67 +70,33 @@ function SideBarFooter() {
           variant="ghost"
           onClick={() => onOptionClick(option)}
           key={index}
-          className="w-full flex justify-start my-1 cursor-pointer" // Added cursor-pointer
+          className="w-full flex justify-start my-1 cursor-pointer"
         >
           <option.icon className="w-5 h-5 mr-2" />
           <span>{option.name}</span>
         </Button>
       ))}
       <div className="mt-4">
-            <Separator className="my-2" />
+        <Separator className="my-2" />
         {userDetail && (
-        <div className='flex justify-center items-center gap-1 px-3 w-full'>
-          <div className='w-[20%]'>
-            <Image src={userDetail?.picture}
-                 className='rounded-full cursor-pointer'
-                 alt='user' width={30} height={30}/>
+          <div className="flex justify-center items-center gap-1 px-3 w-full">
+            <div className="w-[20%]">
+              <Image src={userDetail?.picture} className="rounded-full cursor-pointer" alt="user" width={30} height={30} />
+            </div>
+            <div className="w-[80%]">
+              <h1 className="text-[17px]">{userDetail?.name}</h1>
+              <h2 className="text-sm text-gray-500 line-clamp-1">{userDetail?.email}</h2>
+            </div>
           </div>
-          <div className='w-[80%]'>
-            <h1 className='text-[17px]'>{userDetail?.name}</h1>
-            <h2 className='text-sm text-gray-500 line-clamp-1'>{userDetail?.email}</h2>
-          </div>
-        </div>
         )}
         <Separator className="my-2" />
         <div className="px-3">
-                <PanelLeftClose
-                  className="cursor-pointer"
-                  onClick={toggleSidebar}
-                />
-              </div>
+          <PanelLeftClose className="cursor-pointer" onClick={toggleSidebar} />
+        </div>
       </div>
 
       {/* Settings Modal */}
-      {isSettingsModalOpen && (
-        <Modal title="Settings" onClose={() => setIsSettingsModalOpen(false)}>
-          <div className="flex flex-col gap-4 p-4">
-            {/* Example settings options */}
-            <div className="flex justify-between items-center">
-              <span>Dark Mode</span>
-              <input
-                type="checkbox"
-                className="toggle toggle-primary cursor-pointer" // Added cursor-pointer
-                onChange={(e) => {
-                  const isDarkMode = e.target.checked;
-                  document.body.classList.toggle('dark', isDarkMode); // Simple dark mode toggle
-                }}
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Update Profile</span>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  router.push('/profile'); // Redirect to profile update page
-                }}
-                className="cursor-pointer" // Added cursor-pointer
-              >
-                Edit
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <Setting open={open} setOpen={setOpen}/>
     </div>
   );
 }
