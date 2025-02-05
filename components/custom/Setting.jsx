@@ -184,11 +184,19 @@ function SettingsDialog({open, setOpen}) {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [lineWrapping, setLineWrapping] = useState(() => {
-    return localStorage.getItem("LineWrapping") === "true";
-});
-const [showTokens, setShowTokens] = useState(() => {
-  return localStorage.getItem("ShowTokens") === "true";
-});
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("LineWrapping") === "true";
+    }
+    return false;
+  });
+  
+  const [showTokens, setShowTokens] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ShowTokens") === "true";
+    }
+    return false;
+  });
+  
 
 const handleToggle = () => {
   const newValue = !lineWrapping;

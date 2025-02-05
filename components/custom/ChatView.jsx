@@ -83,7 +83,6 @@ function ChatView() {
       if (e.target.files[0]) { // Ensure a file is selected
         Url = await uploadImageToCloudinary(e.target.files[0]);
         setImageURL(Url);
-        console.log("Image uploaded successfully:", Url);
         setImageUploadLoading(false);
       } else {
         console.warn("No file selected for upload.");
@@ -112,7 +111,6 @@ function ChatView() {
         workspaceId:id
     });
   setMessages(result?.messages)
-  console.log("messages",result)
 }
 
   useEffect(() => {

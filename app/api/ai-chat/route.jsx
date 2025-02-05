@@ -12,7 +12,6 @@ export async function POST(req) {
   try {
     // Parse the form data (multipart/form-data)
     const formData = await req.formData();
-    console.log('Received form data VIVEK :', formData);
     const prompt = formData.get('prompt');
     const imageFile = formData.get('imageFile'); // Optional image file
 
@@ -48,7 +47,6 @@ export async function POST(req) {
     // Construct the full prompt for Gemini AI
     const fullPrompt = imageText ? `The image contains: ${imageText}. ${prompt}` : prompt;
 
-    console.log('Full Prompt:', fullPrompt);
 
     // Initialize the Gemini AI chat session for additional response generation
     const chatSession = genAI.getGenerativeModel({
@@ -72,7 +70,6 @@ export async function POST(req) {
     // Generate a response based on the full prompt
     const result = await chatSession.sendMessage(fullPrompt);
     const AIResponse = result.response.text();
-    console.log('AI Response:', AIResponse);
 
     // Return the response to the frontend
     return NextResponse.json({ result: AIResponse });
