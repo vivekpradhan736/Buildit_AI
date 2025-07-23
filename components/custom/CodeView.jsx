@@ -21,25 +21,22 @@ import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog';
 import SandpackPreviewClient from './SandpackPreviewClient';
 import { ActionContext } from '@/context/ActionContext';
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSession } from 'next-auth/react';
 
 function CodeView() {
-  const {id}=useParams();
+  const {id, workspaceId}=useParams();
   const [activeTab,setActiveTab]=useState('code');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { userDetail,setUserDetail } = useContext(UserDetailContext);
+  const { userDetail, setUserDetail, userGithubDetail, setUserGithubDetail } = useContext(UserDetailContext);
   const [files,setFiles]=useState(Lookup?.DEFAULT_FILE);
-  const {messages,setMessages}=useContext(MessagesContext);
+  const {messages,setMessages, generatedCode, setGeneratedCode, codeGeneratingLoading, setCodeGeneratingLoading}=useContext(MessagesContext);
   const UpdateFiles=useMutation(api.workspace.UpdateFiles)
   const convex=useConvex();
-  const [loading,setLoading]=useState(false);
   const UpdateTokens=useMutation(api.users.UpdateToken);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const { action, setAction } = useContext(ActionContext);
   const [isLineWrapping, setIsLineWrapping] = useState(false);
-
-  useEffect(()=>{
-   id&&GetFiles();
-  },[id])
+  const { data: session, status: sessionStatus } = useSession();
 
 
   useEffect(()=>{
@@ -47,20 +44,20 @@ function CodeView() {
     if(LineWrapping){
       setIsLineWrapping(JSON.parse(LineWrapping))
     }
-   },[localStorage.getItem("LineWrapping")])
+   },[])
 
   useEffect(()=>{
     setActiveTab('preview')
    },[action])
 
   const GetFiles= async()=>{
-    setLoading(true);
+    setCodeGeneratingLoading(true);
     const result=await convex.query(api.workspace.GetWorkspace,{
       workspaceId:id
     });
     const mergedFiles={...Lookup.DEFAULT_FILE,...result?.fileData}
     setFiles(mergedFiles);
-    setLoading(false);
+    setCodeGeneratingLoading(false);
   }
 
  useEffect(() => {
@@ -73,20 +70,24 @@ function CodeView() {
    }, [messages]);
   
   const GenerateAiCode=async()=>{
-    setLoading(true)
+    setCodeGeneratingLoading(true)
     setActiveTab('code')
     const PROMPT=JSON.stringify(messages)+" "+Prompt.CODE_GEN_PROMPT;
     const result=await axios.post('/api/gen-ai-code',{
       prompt:PROMPT
     });
     const aiResp=result.data;
+    console.log("aiResp ",aiResp)
 
     const mergedFiles={...Lookup.DEFAULT_FILE,...aiResp?.files}
+    console.log("mergedFiles",mergedFiles)
     setFiles(mergedFiles);
     await UpdateFiles({
      workspaceId:id,
      files:aiResp?.files
     });
+
+    setGeneratedCode(aiResp);
 
       const token=Number(userDetail?.token)-Number(countToken(JSON.stringify(aiResp)));
       const newPerDayToken=Number(userDetail?.perDayToken)-Number (countToken(JSON.stringify(aiResp)));
@@ -104,7 +105,7 @@ function CodeView() {
         }))
 
 
-        setLoading(false);
+        setCodeGeneratingLoading(false);
         setActiveTab('preview')
    }
 
@@ -117,116 +118,133 @@ function CodeView() {
       )}
     </div>
 );
+console.log("my code file",files)
 
   return (
     <div className=''>
       <div className="bg-[#181818] relative w-full p-2 border z-10">
-        <div className="flex items-center flex-wrap shrink-0 bg-black p-1 justify-center rounded-full w-[130px] gap-3">
-          <h2
-            onClick={() => setActiveTab('code')}
-            className={`text-sm cursor-pointer ${activeTab == 'code' && 'text-blue-500 bg-blue-500 bg-opacity-25 p-1 px-2 rounded-full'}`}
-          >
-            Code
-          </h2>
-          <h2
-            onClick={() => setActiveTab('preview')}
-            className={`text-sm cursor-pointer ${activeTab == 'preview' && 'text-blue-500 bg-blue-500 bg-opacity-25 p-1 px-2 rounded-full'}`}
-          >
-            Preview
-          </h2>
+        <div className="flex items-center justify-center gap-3 bg-black p-1 rounded-full w-fit mx-auto mt-2">
+  {['code', 'preview'].map((tab) => (
+    <h2
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`text-sm cursor-pointer px-3 py-1 rounded-full transition ${
+        activeTab === tab
+          ? 'bg-blue-500 bg-opacity-25 text-blue-500'
+          : 'text-gray-300 hover:text-white'
+      }`}
+    >
+      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+    </h2>
+  ))}
+</div>
+      </div>
+      {codeGeneratingLoading ? (
+  // Loading UI (unchanged)
+  <div className="flex">
+    <div className="w-1/5 border-r border-border bg-muted/10 p-4 space-y-4">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-16" />
+        <div className="pl-4 space-y-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-3 w-28" />
         </div>
       </div>
-      <SandpackProvider
-        files={files}
-        template="react"
-        theme={'dark'}
-        customSetup={{
-          dependencies: {
-            ...Lookup.DEPENDANCY,
-          },
-        }}
-        options={{
-          externalResources: ['https://cdn.tailwindcss.com'],
-        }}
-      >
-      {loading === true ? (
-        <div className=" bg-gray-900 opacity-80 rounded-lg h-screen flex justify-center">
-          {/* <Loader2Icon className="animate-spin h-10 w-10 text-white" />
-          <h2 className="text-white">Generating your files...</h2> */}
-          {/* Left Sidebar - File Explorer */}
-      <div className="w-40 border-r border-border bg-muted/10 p-4 space-y-4">
-        {/* Folder Structure */}
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-16" /> {/* public */}
-          <div className="pl-4 space-y-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-3 w-28" />
-          </div>
-        </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-14" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-3 w-28" />
+      </div>
+    </div>
 
-        {/* File List */}
-        <div className="space-y-2">
-          <Skeleton className="h-3 w-16" /> {/* App.css */}
-          <Skeleton className="h-3 w-14" /> {/* App.js */}
-          <Skeleton className="h-3 w-16" /> {/* index.js */}
-          <Skeleton className="h-3 w-24" /> {/* package.json */}
-          <Skeleton className="h-3 w-32" /> {/* postcss.config.js */}
-          <Skeleton className="h-3 w-20" /> {/* styles.css */}
-          <Skeleton className="h-3 w-28" /> {/* tailwind.config.js */}
-        </div>
+    <div className="flex-1 p-4 space-y-6 overflow-hidden">
+      <div className="flex gap-2 border-b border-border pb-2">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-6 w-28" />
+        <Skeleton className="h-6 w-20" />
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 p-4 space-y-6 overflow-hidden">
-        {/* Tab Bar */}
-        <div className="flex gap-2 border-b border-border pb-2">
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-6 w-28" />
-          <Skeleton className="h-6 w-20" />
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-64" />
+          <Skeleton className="h-4 w-72" />
         </div>
-
-        {/* Code Editor Content */}
-        <div className="space-y-2">
-          {/* Import statements */}
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-64" />
-            <Skeleton className="h-4 w-72" />
-          </div>
-
-          {/* Function declaration */}
-          <Skeleton className="h-4 w-32 mt-4" />
-
-          {/* Function content */}
-          <div className="pl-4 space-y-1 mt-2">
-            <Skeleton className="h-4 w-80" />
-            <Skeleton className="h-4 w-96" />
-            <Skeleton className="h-4 w-72" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-
-          {/* More code blocks */}
-          <div className="space-y-1 mt-4">
-            <Skeleton className="h-4 w-full max-w-2xl" />
-            <Skeleton className="h-4 w-full max-w-xl" />
-            <Skeleton className="h-4 w-full max-w-lg" />
-          </div>
+        <Skeleton className="h-4 w-32 mt-4" />
+        <div className="pl-4 space-y-1 mt-2">
+          <Skeleton className="h-4 w-80" />
+          <Skeleton className="h-4 w-96" />
+          <Skeleton className="h-4 w-72" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="space-y-1 mt-4">
+          <Skeleton className="h-4 w-full max-w-2xl" />
+          <Skeleton className="h-4 w-full max-w-xl" />
+          <Skeleton className="h-4 w-full max-w-lg" />
         </div>
       </div>
+    </div>
+  </div>
+) : activeTab === "code" ? (
+  <SandpackProvider
+    files={files}
+    template="react"
+    theme="dark"
+    customSetup={{
+      dependencies: {
+        ...Lookup.DEPENDANCY,
+      },
+    }}
+    options={{
+      externalResources: ["https://cdn.tailwindcss.com"],
+    }}
+  >
+    <SandpackLayout className="flex w-full min-h-[80vh]">
+      <div className="flex w-full">
+        {/* Sidebar/File Tree */}
+        <div className="w-[200px] border-r border-zinc-800">
+          <SandpackFileExplorer style={{ height: "80vh" }} />
         </div>
-      ) : (
-        <SandpackLayout>
-          {activeTab == 'code' ? (
-            <>
-              <SandpackFileExplorer style={{ height: '80vh' }} />
-              <SandpackCodeEditor style={{ height: '80vh' }} wrapContent={isLineWrapping} />
-            </>
-          ) : (
-            <SandpackPreviewClient customActions={customActions} height='80vh' width='80vw' />
-          )}
-        </SandpackLayout>
-      )}
-      </SandpackProvider>
+        {/* Code Editor */}
+        <div className="flex-1 overflow-auto">
+          <SandpackCodeEditor
+            style={{ height: "80vh" }}
+            wrapContent={isLineWrapping}
+          />
+        </div>
+      </div>
+    </SandpackLayout>
+  </SandpackProvider>
+) : (
+  <SandpackProvider
+    files={files}
+    template="react"
+    theme="dark"
+    customSetup={{
+      dependencies: {
+        ...Lookup.DEPENDANCY,
+      },
+    }}
+    options={{
+      externalResources: ["https://cdn.tailwindcss.com"],
+    }}
+  >
+    <SandpackLayout className="flex w-full min-h-[80vh]">
+      <div className="w-full">
+        <SandpackPreviewClient
+          customActions={customActions}
+          height="80vh"
+          width="100%"
+        />
+      </div>
+    </SandpackLayout>
+  </SandpackProvider>
+)}
+
 
       {/* Dialog for full-screen preview */}
       {isFullScreen && (

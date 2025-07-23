@@ -7,15 +7,22 @@ export const CreateWorkspace = mutation({
     messages: v.any(),
     user: v.id("users"),
     // image: v.optional(v.string()),
+    githubURL: v.optional(v.string()),
+    vercelURL: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     try {
-      const result = await ctx.db.insert("workspace", {
+      const data = {
         messages: args.messages,
         user: args.user,
-        // image: args.image || null,
-      });
-      // Returning the inserted workspace object
+        deployStatus: "not_started",
+      };
+
+      // Only include URLs if they are provided
+      if (args.githubURL) data.githubURL = args.githubURL;
+      if (args.vercelURL) data.vercelURL = args.vercelURL;
+
+      const result = await ctx.db.insert("workspace", data);
       return result;
     } catch (error) {
       console.error("Error creating workspace:", error);
@@ -140,6 +147,66 @@ export const SearchWorkspaces = query({
     } catch (error) {
       console.error("Error searching workspaces:", error);
       throw new Error("Unable to search workspaces");
+    }
+  },
+});
+
+// Mutation to Update GitHub Repo URL in Workspace
+export const UpdateGithubURL = mutation({
+  args: {
+    workspaceId: v.id("workspace"),
+    githubUsername: v.optional(v.string()),
+    repoName: v.optional(v.string()),
+    githubURL: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const result = await ctx.db.patch(args.workspaceId, {
+        githubUsername: args.githubUsername,
+        repoName: args.repoName,
+        githubURL: args.githubURL,
+      });
+      return result; // Return the updated workspace
+    } catch (error) {
+      console.error("Error updating GitHub URL:", error);
+      throw new Error("Unable to update GitHub URL");
+    }
+  },
+});
+
+// Mutation to Update Vercel Deploy URL in Workspace
+export const UpdateVercelURL = mutation({
+  args: {
+    workspaceId: v.id("workspace"),
+    vercelURL: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const result = await ctx.db.patch(args.workspaceId, {
+        vercelURL: args.vercelURL,
+      });
+      return result; // Return the updated workspace
+    } catch (error) {
+      console.error("Error updating GitHub URL:", error);
+      throw new Error("Unable to update GitHub URL");
+    }
+  },
+});
+
+export const UpdateDeployStatus = mutation({
+  args: {
+    workspaceId: v.id("workspace"),
+    deployStatus: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const result = await ctx.db.patch(args.workspaceId, {
+        deployStatus: args.deployStatus,
+      });
+      return result; // Return the updated workspace
+    } catch (error) {
+      console.error("Error updating GitHub URL:", error);
+      throw new Error("Unable to update GitHub URL");
     }
   },
 });

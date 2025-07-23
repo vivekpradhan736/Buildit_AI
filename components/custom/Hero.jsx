@@ -126,7 +126,7 @@ function Hero() {
   }, [userInput, onGenerate]);
 
   return (
-    <div className="flex min-h-screen h-[95vh]">
+    <div className="flex h-[75vh]">
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-screen w-16 flex flex-col items- justify-end py-4">
         <div className="flex gap-4">

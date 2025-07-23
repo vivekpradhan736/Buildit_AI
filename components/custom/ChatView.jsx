@@ -96,15 +96,17 @@ function ChatView() {
   };
 
   useEffect(() => {
-    id&& GetWorkspaceData();
+    id && GetWorkspaceData();
   }, [id]);
+
+  console.log("id ", id)
 
   useEffect(()=>{
       const ShowTokens = localStorage.getItem("ShowTokens")
       if(ShowTokens){
         setIsShowTokens(JSON.parse(ShowTokens))
       }
-     },[localStorage.getItem("ShowTokens")])
+     },[])
 
   const GetWorkspaceData = async () => {
     const result = await convex.query(api.workspace.GetWorkspace, {

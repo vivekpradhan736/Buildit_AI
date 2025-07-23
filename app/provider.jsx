@@ -15,8 +15,11 @@ import { ActionContext } from "@/context/ActionContext";
 
 function Provider({ children }) {
   const [messages, setMessages] = useState([]); // Initialize as an empty array
+  const [generatedCode, setGeneratedCode] = useState({});
+  const [codeGeneratingLoading, setCodeGeneratingLoading] = useState(false);
   const [imageFile, setImageFile] = useState([]);
-  const [userDetail, setUserDetail] = useState(null); // Initialize as null
+  const [userDetail, setUserDetail] = useState(null);
+  const [userGithubDetail, setUserGithubDetail] = useState(null);
   const [action, setAction] = useState();
   const convex = useConvex();
   const [userDetailLoading, setUserDetailLoading] = useState(false);
@@ -42,9 +45,27 @@ function Provider({ children }) {
     }
   };
 
+  const isAuthenticatedByGithub = async () => {
+    if (typeof window !== "undefined") {
+      const githubUserDetail = JSON.parse(localStorage.getItem("githubUserDetail"));
+
+      if (githubUserDetail?.userId) {
+        try {
+          const result = await convex.query(api.github.getGithubToken, {
+            userId: githubUserDetail.userId,
+          });
+          setUserGithubDetail(result);
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     isAuthenticated();
-  }, []);
+    isAuthenticatedByGithub()
+  }, [userDetail]);
 
   useEffect(() => {
     if (!userDetail || !userDetail._id) return;
@@ -71,7 +92,6 @@ function Provider({ children }) {
     } else {
       try {
         await CheckAndResetPerDayToken({ userId: userID });
-        console.log("Per Day Token reset successfully");
       } catch (error) {
         console.error("Error resetting per day token:", error);
       }
@@ -80,15 +100,15 @@ function Provider({ children }) {
   
 
   return (
-    <div>
+    <div className="">
       <GoogleOAuthProvider
         clientId={process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID_KEY}
       >
         <PayPalScriptProvider
           options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID }}
         >
-          <UserDetailContext.Provider value={{ userDetail, setUserDetail, userDetailLoading }}>
-            <MessagesContext.Provider value={{ messages, setMessages, imageFile, setImageFile }}>
+          <UserDetailContext.Provider value={{ userDetail, setUserDetail, userDetailLoading, userGithubDetail, setUserGithubDetail }}>
+            <MessagesContext.Provider value={{ messages, setMessages, imageFile, setImageFile, generatedCode, setGeneratedCode, codeGeneratingLoading, setCodeGeneratingLoading }}>
               <ActionContext.Provider value={{action,setAction}}>
               <NextThemesProvider
                 attribute="class"

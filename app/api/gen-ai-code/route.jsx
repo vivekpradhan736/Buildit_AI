@@ -2,6 +2,7 @@ import { GenAiCode } from "@/configs/AiModel";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
+    console.log("_Vivek", req)
     const {prompt}=await req.json();
     try{ 
         const result= await GenAiCode.sendMessage(prompt);
@@ -10,7 +11,7 @@ export async function POST(req) {
 
     }catch(e)
     {
-        return NextResponse.json({error:resp});
+        return NextResponse.json({error:e});
 
     }
 }

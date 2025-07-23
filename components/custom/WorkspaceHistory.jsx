@@ -6,7 +6,7 @@ import { useConvex, useMutation } from 'convex/react';
 import Link from 'next/link';
 import React, { useContext, useEffect, useState } from 'react';
 import { useSidebar } from '../ui/sidebar';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Loader2Icon, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { Separator } from '../ui/separator';
 
 function WorkspaceHistory() {
     const { id } = useParams();
+    const router = useRouter();
     const { userDetail, setUserDetail } = useContext(UserDetailContext);
     const convex = useConvex();
     const [workspaceList, setWorkspaceList] = useState([]);
@@ -69,6 +70,9 @@ function WorkspaceHistory() {
         setOpenDialog(false);
         setDeleteLoading(false);
         setSelectedWorkspace(null);
+        if(selectedWorkspace === id){
+            router.push("/");
+        }
     };
 
     // 🔹 Function to format the chat creation date
